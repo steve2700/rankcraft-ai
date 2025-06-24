@@ -8,3 +8,7 @@ class VerifyEmailModel(BaseModel):
     email: EmailStr
     code: str
 
+class LoginModel(BaseModel):
+    email: EmailStr
+    password: str
+

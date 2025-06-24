@@ -3,6 +3,7 @@ from email.mime.text import MIMEText
 from app.database import supabase
 from app.config import settings
 from app.utils.validators import generate_code, store_code
+import jwt
 
 def send_verification_email(to_email: str, code: str):
     body = f"""
@@ -30,9 +31,9 @@ def create_user_and_send_code(email: str, password: str):
         "password": password
     })
 
-    # ✅ Correct way to handle errors:
-    if result.error:
-        raise Exception(result.error.message)
+    # ✅ Check for successful signup
+    if not result.user:
+        raise Exception("Signup failed. Email might already be registered.")
 
     code = generate_code()
     store_code(email, code)
@@ -44,10 +45,10 @@ def login_user(email: str, password: str) -> str:
         "password": password
     })
 
-    if result.error:
-        raise Exception(result.error.message)
+    if not result.session:
+        raise Exception("Login failed. Invalid credentials or unverified email.")
 
-    # Generate and return JWT
+    # ✅ Return a custom JWT token for the frontend (optional)
     token = jwt.encode({"email": email}, settings.JWT_SECRET, algorithm="HS256")
     return token
 
