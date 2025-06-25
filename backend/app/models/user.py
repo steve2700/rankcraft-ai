@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr
 
 class RegisterModel(BaseModel):
     email: EmailStr
@@ -22,4 +22,7 @@ class PasswordResetModel(BaseModel):
     email: EmailStr
     code: str
     new_password: str
+
+class RefreshTokenModel(BaseModel):
+    refresh_token: str
 

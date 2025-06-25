@@ -2,23 +2,15 @@ import smtplib
 import jwt
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
-
 from app.config import settings
 from app.database import supabase
 from app.utils.validators import generate_code, store_code, validate_code, rate_limit_check
 
-def send_verification_email(to_email: str, code: str):
-    body = f"""
-    Hi 👋,
 
-    Your verification code for RankCraft is:
-
-        {code}
-
-    Expires in {settings.CODE_EXPIRATION_MINUTES} minutes.
-    """
+# General email sender
+def send_email(to_email: str, subject: str, body: str):
     msg = MIMEText(body)
-    msg["Subject"] = "Verify Your RankCraft Account"
+    msg["Subject"] = subject
     msg["From"] = settings.EMAIL_FROM
     msg["To"] = to_email
 
@@ -28,12 +20,44 @@ def send_verification_email(to_email: str, code: str):
         server.sendmail(settings.EMAIL_FROM, [to_email], msg.as_string())
 
 
-def create_user_and_send_code(email: str, password: str):
-    result = supabase.auth.sign_up({"email": email, "password": password})
-    if not result.user:
-        raise Exception("Signup failed. Email may be in use.")
+# Used when registering account
+def send_verification_email(to_email: str, code: str):
+    body = f"""
+    Hi 👋,
 
-    supabase.table("users").insert({"email": email}).execute()
+    Your verification code for RankCraft signup is:
+
+        {code}
+
+    It expires in {settings.CODE_EXPIRATION_MINUTES} minutes.
+    """
+    send_email(to_email, "Verify Your RankCraft Account", body)
+
+
+# Used when resetting password
+def send_password_reset_email(to_email: str, code: str):
+    body = f"""
+    Hi 👋,
+
+    You requested a password reset for your RankCraft account.
+
+    Use this verification code to reset your password:
+
+        {code}
+
+    It expires in {settings.CODE_EXPIRATION_MINUTES} minutes.
+
+    If you did not request this, please ignore this email.
+    """
+    send_email(to_email, "RankCraft Password Reset Request", body)
+
+
+def create_user_and_send_code(email: str, password: str):
+    existing = supabase.table("users").select("*").eq("email", email).execute()
+    if existing.data:
+        raise Exception("Email already registered.")
+
+    supabase.table("users").insert({"email": email, "password": password}).execute()
 
     code = generate_code()
     store_code(email, code)
@@ -45,21 +69,21 @@ def verify_email(email: str, code: str) -> str:
         raise Exception("Invalid or expired code")
 
     supabase.table("users").update({"is_verified": True}).eq("email", email).execute()
-
-    token = jwt.encode({"email": email}, settings.JWT_SECRET, algorithm="HS256")
-    return token
+    return create_access_token(email)
 
 
-def login_user(email: str, password: str) -> str:
-    result = supabase.auth.sign_in_with_password({"email": email, "password": password})
-    if not result.session:
-        raise Exception("Login failed")
+def login_user(email: str, password: str) -> dict:
+    user = supabase.table("users").select("*").eq("email", email).single().execute()
 
-    user = supabase.table("users").select("is_verified").eq("email", email).single().execute()
-    if not user.data or not user.data.get("is_verified"):
+    if not user.data or user.data["password"] != password:
+        raise Exception("Invalid credentials")
+    if not user.data.get("is_verified"):
         raise Exception("Email not confirmed")
 
-    return jwt.encode({"email": email}, settings.JWT_SECRET, algorithm="HS256")
+    return {
+        "access_token": create_access_token(email),
+        "refresh_token": create_refresh_token(email)
+    }
 
 
 def resend_verification_code(email: str):
@@ -72,15 +96,45 @@ def resend_verification_code(email: str):
 
 
 def request_password_reset(email: str):
+    user = supabase.table("users").select("*").eq("email", email).single().execute()
+    if not user.data:
+        raise Exception("User not found")
+
     code = generate_code()
     store_code(email, code)
-    send_verification_email(email, code)
+    send_password_reset_email(email, code)
 
 
 def reset_password(email: str, code: str, new_password: str):
     if not validate_code(email, code):
         raise Exception("Invalid or expired code")
 
-    
-    supabase.auth.admin.update_user_by_email(email, {"password": new_password})
+    supabase.table("users").update({"password": new_password}).eq("email", email).execute()
+
+
+# ✅ Token helpers
+def create_access_token(email: str) -> str:
+    return jwt.encode(
+        {"email": email, "exp": datetime.utcnow() + timedelta(minutes=15)},
+        settings.JWT_SECRET,
+        algorithm="HS256"
+    )
+
+
+def create_refresh_token(email: str) -> str:
+    return jwt.encode(
+        {"email": email, "exp": datetime.utcnow() + timedelta(days=7)},
+        settings.JWT_SECRET,
+        algorithm="HS256"
+    )
+
+
+def verify_refresh_token(refresh_token: str) -> str:
+    try:
+        payload = jwt.decode(refresh_token, settings.JWT_SECRET, algorithms=["HS256"])
+        return create_access_token(payload["email"])
+    except jwt.ExpiredSignatureError:
+        raise Exception("Refresh token expired")
+    except jwt.InvalidTokenError:
+        raise Exception("Invalid refresh token")
 

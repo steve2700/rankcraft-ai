@@ -11,7 +11,7 @@ def generate_code() -> str:
 def store_code(email: str, code: str):
     expires = datetime.utcnow() + timedelta(minutes=settings.CODE_EXPIRATION_MINUTES)
     verification_codes[email] = {"code": code, "expires": expires}
-    rate_limit[email] = datetime.utcnow()  # log time for rate limit
+    rate_limit[email] = datetime.utcnow()
 
 def validate_code(email: str, code: str) -> bool:
     data = verification_codes.get(email)
