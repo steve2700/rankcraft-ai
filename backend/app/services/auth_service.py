@@ -1,5 +1,6 @@
 import smtplib
 import jwt
+import bcrypt
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from app.config import settings
@@ -20,7 +21,7 @@ def send_email(to_email: str, subject: str, body: str):
         server.sendmail(settings.EMAIL_FROM, [to_email], msg.as_string())
 
 
-# Used when registering account
+# Verification email
 def send_verification_email(to_email: str, code: str):
     body = f"""
     Hi 👋,
@@ -34,7 +35,7 @@ def send_verification_email(to_email: str, code: str):
     send_email(to_email, "Verify Your RankCraft Account", body)
 
 
-# Used when resetting password
+# Password reset email
 def send_password_reset_email(to_email: str, code: str):
     body = f"""
     Hi 👋,
@@ -57,7 +58,8 @@ def create_user_and_send_code(email: str, password: str):
     if existing.data:
         raise Exception("Email already registered.")
 
-    supabase.table("users").insert({"email": email, "password": password}).execute()
+    hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    supabase.table("users").insert({"email": email, "password": hashed_pw}).execute()
 
     code = generate_code()
     store_code(email, code)
@@ -75,8 +77,13 @@ def verify_email(email: str, code: str) -> str:
 def login_user(email: str, password: str) -> dict:
     user = supabase.table("users").select("*").eq("email", email).single().execute()
 
-    if not user.data or user.data["password"] != password:
+    if not user.data:
         raise Exception("Invalid credentials")
+
+    stored_hash = user.data["password"]
+    if not bcrypt.checkpw(password.encode(), stored_hash.encode()):
+        raise Exception("Invalid credentials")
+
     if not user.data.get("is_verified"):
         raise Exception("Email not confirmed")
 
@@ -109,10 +116,11 @@ def reset_password(email: str, code: str, new_password: str):
     if not validate_code(email, code):
         raise Exception("Invalid or expired code")
 
-    supabase.table("users").update({"password": new_password}).eq("email", email).execute()
+    hashed_pw = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
+    supabase.table("users").update({"password": hashed_pw}).eq("email", email).execute()
 
 
-# ✅ Token helpers
+# Token helpers
 def create_access_token(email: str) -> str:
     return jwt.encode(
         {"email": email, "exp": datetime.utcnow() + timedelta(minutes=15)},
