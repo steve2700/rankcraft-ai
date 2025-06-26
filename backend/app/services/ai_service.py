@@ -33,10 +33,16 @@ def generate_article(keyword: str, tone: str, length: str) -> str:
             {"role": "system", "content": "You are an expert SEO content writer."},
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.7
+        "temperature": 0.7,
+        "top_p": 1.0,
+        "max_tokens": 2048  # Set a limit to avoid rejection
     }
 
-    response = httpx.post(GROQ_API_URL, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()["choices"][0]["message"]["content"]
+    try:
+        response = httpx.post(GROQ_API_URL, headers=headers, json=payload)
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
+    except httpx.HTTPStatusError as e:
+        print(f"API Error: {e.response.text}")
+        raise
 
