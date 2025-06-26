@@ -28,14 +28,14 @@ def generate_article(keyword: str, tone: str, length: str) -> str:
     }
 
     payload = {
-        "model": "mixtral-8x7b-32768",
+        "model": "mistral-saba-24b",  # Updated model
         "messages": [
             {"role": "system", "content": "You are an expert SEO content writer."},
             {"role": "user", "content": prompt}
         ],
         "temperature": 0.7,
         "top_p": 1.0,
-        "max_tokens": 2048  # Set a limit to avoid rejection
+        "max_tokens": 2048
     }
 
     try:
