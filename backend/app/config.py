@@ -13,6 +13,7 @@ class Settings:
     EMAIL_PASS = os.getenv("EMAIL_PASS")
     EMAIL_FROM = os.getenv("EMAIL_FROM")
     CODE_EXPIRATION_MINUTES = int(os.getenv("CODE_EXPIRATION_MINUTES"))
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY")
 
 settings = Settings()
 
