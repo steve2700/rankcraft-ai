@@ -7,7 +7,6 @@ from app.config import settings
 from app.database import supabase
 from app.utils.validators import generate_code, store_code, validate_code, rate_limit_check
 
-
 # General email sender
 def send_email(to_email: str, subject: str, body: str):
     msg = MIMEText(body)
@@ -20,39 +19,37 @@ def send_email(to_email: str, subject: str, body: str):
         server.login(settings.EMAIL_USER, settings.EMAIL_PASS)
         server.sendmail(settings.EMAIL_FROM, [to_email], msg.as_string())
 
-
 # Verification email
 def send_verification_email(to_email: str, code: str):
     body = f"""
-    Hi 👋,
+Hi 👋,
 
-    Your verification code for RankCraft signup is:
+Your verification code for RankCraft signup is:
 
-        {code}
+    {code}
 
-    It expires in {settings.CODE_EXPIRATION_MINUTES} minutes.
-    """
+It expires in {settings.CODE_EXPIRATION_MINUTES} minutes.
+"""
     send_email(to_email, "Verify Your RankCraft Account", body)
-
 
 # Password reset email
 def send_password_reset_email(to_email: str, code: str):
     body = f"""
-    Hi 👋,
+Hi 👋,
 
-    You requested a password reset for your RankCraft account.
+You requested a password reset for your RankCraft account.
 
-    Use this verification code to reset your password:
+Use this verification code to reset your password:
 
-        {code}
+    {code}
 
-    It expires in {settings.CODE_EXPIRATION_MINUTES} minutes.
+It expires in {settings.CODE_EXPIRATION_MINUTES} minutes.
 
-    If you did not request this, please ignore this email.
-    """
+If you did not request this, please ignore this email.
+"""
     send_email(to_email, "RankCraft Password Reset Request", body)
 
-
+# Create user & send verification code
 def create_user_and_send_code(email: str, password: str):
     existing = supabase.table("users").select("*").eq("email", email).execute()
     if existing.data:
@@ -65,7 +62,7 @@ def create_user_and_send_code(email: str, password: str):
     store_code(email, code)
     send_verification_email(email, code)
 
-
+# Verify email using code & issue access token
 def verify_email(email: str, code: str) -> str:
     if not validate_code(email, code):
         raise Exception("Invalid or expired code")
@@ -73,10 +70,9 @@ def verify_email(email: str, code: str) -> str:
     supabase.table("users").update({"is_verified": True}).eq("email", email).execute()
     return create_access_token(email)
 
-
+# Login user and issue tokens
 def login_user(email: str, password: str) -> dict:
     user = supabase.table("users").select("*").eq("email", email).single().execute()
-
     if not user.data:
         raise Exception("Invalid credentials")
 
@@ -92,7 +88,7 @@ def login_user(email: str, password: str) -> dict:
         "refresh_token": create_refresh_token(email)
     }
 
-
+# Resend verification code (rate-limited)
 def resend_verification_code(email: str):
     if not rate_limit_check(email):
         raise Exception("Please wait before requesting a new code")
@@ -101,7 +97,7 @@ def resend_verification_code(email: str):
     store_code(email, code)
     send_verification_email(email, code)
 
-
+# Request password reset code
 def request_password_reset(email: str):
     user = supabase.table("users").select("*").eq("email", email).single().execute()
     if not user.data:
@@ -111,7 +107,7 @@ def request_password_reset(email: str):
     store_code(email, code)
     send_password_reset_email(email, code)
 
-
+# Reset password using code
 def reset_password(email: str, code: str, new_password: str):
     if not validate_code(email, code):
         raise Exception("Invalid or expired code")
@@ -119,8 +115,7 @@ def reset_password(email: str, code: str, new_password: str):
     hashed_pw = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
     supabase.table("users").update({"password": hashed_pw}).eq("email", email).execute()
 
-
-# Token helpers
+# JWT token helpers
 def create_access_token(email: str) -> str:
     return jwt.encode(
         {"email": email, "exp": datetime.utcnow() + timedelta(minutes=15)},
@@ -128,14 +123,12 @@ def create_access_token(email: str) -> str:
         algorithm="HS256"
     )
 
-
 def create_refresh_token(email: str) -> str:
     return jwt.encode(
         {"email": email, "exp": datetime.utcnow() + timedelta(days=7)},
         settings.JWT_SECRET,
         algorithm="HS256"
     )
-
 
 def verify_refresh_token(refresh_token: str) -> str:
     try:

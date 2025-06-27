@@ -29,5 +29,5 @@ def get_current_user(payload: dict = Depends(verify_jwt)):
     if not user.data:
         raise HTTPException(status_code=401, detail="User not found")
 
-    return user.data  # ✅ Returns a full user dict with "id", "email", etc.
+    return user.data  # This returns full user dict with "id", "email", etc.
 
