@@ -14,3 +14,6 @@ def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(security)):
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+def get_current_user(payload: dict = Depends(verify_jwt)):
+    return payload.get("user_id")
+
