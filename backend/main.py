@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, keywords, generate, articles
+from app.api import auth, keywords, generate, articles, seo
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change for prod
+    allow_origins=["*"],  # Change this to your frontend URL in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -16,6 +16,7 @@ app.include_router(auth.router)
 app.include_router(keywords.router)
 app.include_router(generate.router)
 app.include_router(articles.router)
+app.include_router(seo.router)  
 
 @app.get("/")
 def root():
