@@ -37,3 +37,7 @@ app.include_router(analytics.router)
 def root():
     return {"message": "✅ RankCraft API is up and running!"}
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
