@@ -2,19 +2,24 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  Zap, 
-  LogOut, 
-  FileText, 
-  Search, 
-  TrendingUp, 
+import {
+  Zap,
+  LogOut,
+  FileText,
+  Search,
+  TrendingUp,
   Settings,
   Plus,
   BarChart3,
   Clock,
-  Star
+  Star,
 } from 'lucide-react'
-import { getAuthToken, getUserFromToken, removeAuthToken, isAuthenticated } from '../lib/auth'
+import {
+  getAuthToken,
+  getUserFromToken,
+  removeAuthToken,
+  isAuthenticated,
+} from '../lib/auth'
 
 export default function Dashboard() {
   const [user, setUser] = useState<{ email: string } | null>(null)
@@ -22,17 +27,14 @@ export default function Dashboard() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login')
-      return
-    }
-
     const token = getAuthToken()
-    if (token) {
+    if (!token || !isAuthenticated()) {
+      router.push('/login')
+    } else {
       const userData = getUserFromToken(token)
       setUser(userData)
+      setLoading(false)
     }
-    setLoading(false)
   }, [router])
 
   const handleLogout = () => {
@@ -60,7 +62,7 @@ export default function Dashboard() {
               </div>
               <h1 className="ml-3 text-xl font-bold text-white">RankCraft AI</h1>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <span className="text-slate-300 text-sm">
                 Welcome, {user?.email}

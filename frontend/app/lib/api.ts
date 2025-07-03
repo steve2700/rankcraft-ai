@@ -32,7 +32,7 @@ export const api = {
         },
         body: JSON.stringify(data),
       })
-      
+
       const result = await response.json()
       return result
     } catch (error) {
@@ -43,7 +43,7 @@ export const api = {
     }
   },
 
-  login: async (data: LoginData): Promise<ApiResponse<{ token: string }>> => {
+  login: async (data: LoginData): Promise<ApiResponse<{ token: string; refresh: string }>> => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
@@ -52,9 +52,23 @@ export const api = {
         },
         body: JSON.stringify(data),
       })
-      
+
       const result = await response.json()
-      return result
+
+      if (response.ok && result.access_token && result.refresh_token) {
+        return {
+          success: true,
+          data: {
+            token: result.access_token,
+            refresh: result.refresh_token,
+          },
+        }
+      } else {
+        return {
+          success: false,
+          error: result.detail || 'Invalid email or password',
+        }
+      }
     } catch (error) {
       return {
         success: false,
@@ -72,7 +86,7 @@ export const api = {
         },
         body: JSON.stringify(data),
       })
-      
+
       const result = await response.json()
       return result
     } catch (error) {
@@ -83,3 +97,4 @@ export const api = {
     }
   },
 }
+
