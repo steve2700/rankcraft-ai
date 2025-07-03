@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply text-slate-100 antialiased;
+  }
+}
+
+@layer components {
+  .auth-card {
+    @apply bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-8 w-full max-w-md mx-auto;
+  }
+  
+  .auth-input {
+    @apply w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200;
+  }
+  
+  .auth-button {
+    @apply w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+  }
+  
+  .auth-link {
+    @apply text-blue-300 hover:text-blue-200 transition-colors duration-200 underline decoration-blue-300/50 hover:decoration-blue-200 underline-offset-2;
+  }
+  
+  .error-message {
+    @apply text-red-300 text-sm mt-2 p-2 bg-red-500/10 rounded-lg border border-red-500/20;
+  }
+  
+  .success-message {
+    @apply text-green-300 text-sm mt-2 p-2 bg-green-500/10 rounded-lg border border-green-500/20;
+  }
+}
