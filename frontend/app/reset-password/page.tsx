@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Mail, Lock, KeyRound, ArrowRight } from 'lucide-react'
 import AuthLayout from '../components/AuthLayout'
-import { resetPassword } from '../lib/api'
+import { api } from '../lib/api'
 import { useRouter } from 'next/navigation'
 
 export default function ResetPassword() {
@@ -22,7 +22,7 @@ export default function ResetPassword() {
     setLoading(true)
 
     try {
-      const result = await resetPassword(email, code, newPassword)
+      const result = await api.resetPassword(email, code, newPassword)
       if (result.success) {
         setSuccess('Password reset successfully! Redirecting...')
         setTimeout(() => router.push('/login'), 2000)

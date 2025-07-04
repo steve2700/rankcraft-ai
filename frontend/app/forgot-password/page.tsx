@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { Mail, ArrowRight } from 'lucide-react'
 import AuthLayout from '../components/AuthLayout'
-import { requestPasswordReset } from '../lib/api'
+import { api } from '../lib/api'
+
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -18,7 +19,7 @@ export default function ForgotPassword() {
     setLoading(true)
 
     try {
-      const result = await requestPasswordReset(email)
+      const result = await api.requestPasswordReset(email)
       if (result.success) {
         setMessage('Check your email for the reset code.')
       } else {
