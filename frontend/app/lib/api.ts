@@ -22,6 +22,12 @@ interface VerifyEmailData {
   code: string
 }
 
+interface ResetPasswordData {
+  email: string
+  code: string
+  new_password: string
+}
+
 export const api = {
   register: async (data: RegisterData): Promise<ApiResponse<any>> => {
     try {
@@ -32,13 +38,21 @@ export const api = {
       })
 
       const result = await response.json()
-      return { success: response.ok, ...result }
+
+      return {
+        success: response.ok,
+        message: result.message,
+        data: result.data,
+        error: result.error,
+      }
     } catch {
       return { success: false, error: 'Network error. Please try again.' }
     }
   },
 
-  login: async (data: LoginData): Promise<ApiResponse<{ token: string }>> => {
+  login: async (
+    data: LoginData
+  ): Promise<ApiResponse<{ access_token: string; refresh_token: string }>> => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
@@ -47,7 +61,22 @@ export const api = {
       })
 
       const result = await response.json()
-      return { success: response.ok, ...result }
+
+      if (response.ok) {
+        return {
+          success: true,
+          data: {
+            access_token: result.access_token,
+            refresh_token: result.refresh_token,
+          },
+          message: result.message,
+        }
+      } else {
+        return {
+          success: false,
+          error: result.error || 'Invalid email or password',
+        }
+      }
     } catch {
       return { success: false, error: 'Network error. Please try again.' }
     }
@@ -62,7 +91,13 @@ export const api = {
       })
 
       const result = await response.json()
-      return { success: response.ok, ...result }
+
+      return {
+        success: response.ok,
+        message: result.message,
+        data: result.data,
+        error: result.error,
+      }
     } catch {
       return { success: false, error: 'Network error. Please try again.' }
     }
@@ -77,7 +112,12 @@ export const api = {
       })
 
       const result = await response.json()
-      return { success: response.ok, ...result }
+
+      return {
+        success: response.ok,
+        message: result.message,
+        error: result.error,
+      }
     } catch {
       return { success: false, error: 'Network error. Please try again.' }
     }
@@ -96,7 +136,12 @@ export const api = {
       })
 
       const result = await response.json()
-      return { success: response.ok, ...result }
+
+      return {
+        success: response.ok,
+        message: result.message,
+        error: result.error,
+      }
     } catch {
       return { success: false, error: 'Network error. Please try again.' }
     }
