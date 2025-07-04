@@ -4,13 +4,14 @@ import { useState } from 'react'
 import { Mail, ArrowRight } from 'lucide-react'
 import AuthLayout from '../components/AuthLayout'
 import { api } from '../lib/api'
-
+import { useRouter } from 'next/navigation'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,6 +23,7 @@ export default function ForgotPassword() {
       const result = await api.requestPasswordReset(email)
       if (result.success) {
         setMessage('Check your email for the reset code.')
+        setTimeout(() => router.push('/reset-password'), 2000)
       } else {
         setError(result.error || 'Failed to send reset code.')
       }

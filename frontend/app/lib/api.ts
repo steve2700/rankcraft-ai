@@ -22,30 +22,19 @@ interface VerifyEmailData {
   code: string
 }
 
-interface ResetPasswordData {
-  email: string
-  code: string
-  new_password: string
-}
-
 export const api = {
   register: async (data: RegisterData): Promise<ApiResponse<any>> => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
 
       const result = await response.json()
-      return result
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Network error. Please try again.',
-      }
+      return { success: response.ok, ...result }
+    } catch {
+      return { success: false, error: 'Network error. Please try again.' }
     }
   },
 
@@ -53,19 +42,14 @@ export const api = {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
 
       const result = await response.json()
-      return result
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Network error. Please try again.',
-      }
+      return { success: response.ok, ...result }
+    } catch {
+      return { success: false, error: 'Network error. Please try again.' }
     }
   },
 
@@ -73,19 +57,14 @@ export const api = {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/verify`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
 
       const result = await response.json()
-      return result
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Network error. Please try again.',
-      }
+      return { success: response.ok, ...result }
+    } catch {
+      return { success: false, error: 'Network error. Please try again.' }
     }
   },
 
@@ -93,19 +72,14 @@ export const api = {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/password-reset-request`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       })
 
       const result = await response.json()
-      return result
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Network error. Please try again.',
-      }
+      return { success: response.ok, ...result }
+    } catch {
+      return { success: false, error: 'Network error. Please try again.' }
     }
   },
 
@@ -117,19 +91,14 @@ export const api = {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code, new_password }),
       })
 
       const result = await response.json()
-      return result
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Network error. Please try again.',
-      }
+      return { success: response.ok, ...result }
+    } catch {
+      return { success: false, error: 'Network error. Please try again.' }
     }
   },
 }
