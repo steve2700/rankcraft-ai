@@ -116,7 +116,7 @@ export default function VerifyEmail() {
 
         <div className="text-center space-y-2">
           <p className="text-slate-300 text-sm">
-            Didn't receive the code?{' '}
+            Didn&apos;t receive the code?{' '}
             <button type="button" className="auth-link">
               Resend Code
             </button>
