@@ -116,7 +116,7 @@ export default function Login() {
             </Link>
           </p>
           <p className="text-slate-300 text-sm">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/register" className="auth-link">
               Create one here
             </Link>

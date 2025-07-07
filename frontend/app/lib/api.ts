@@ -34,7 +34,21 @@ export const api = {
       })
       
       const result = await response.json()
-      return result
+      
+      // Handle HTTP errors
+      if (!response.ok) {
+        return {
+          success: false,
+          error: result.detail || 'Registration failed. Please try again.',
+        }
+      }
+      
+      // Transform backend response format to frontend format
+      return {
+        success: true,
+        message: result.message,
+        data: result
+      }
     } catch (error) {
       return {
         success: false,
@@ -54,7 +68,30 @@ export const api = {
       })
       
       const result = await response.json()
-      return result
+      
+      // Handle HTTP errors
+      if (!response.ok) {
+        return {
+          success: false,
+          error: result.detail || 'Login failed. Please check your credentials.',
+        }
+      }
+      
+      // Transform backend response format to frontend format
+      if (result.access_token) {
+        return {
+          success: true,
+          data: {
+            token: result.access_token
+          },
+          message: result.message
+        }
+      } else {
+        return {
+          success: false,
+          error: 'Invalid response format from server.',
+        }
+      }
     } catch (error) {
       return {
         success: false,
@@ -74,7 +111,23 @@ export const api = {
       })
       
       const result = await response.json()
-      return result
+      
+      // Handle HTTP errors
+      if (!response.ok) {
+        return {
+          success: false,
+          error: result.detail || 'Email verification failed. Please try again.',
+        }
+      }
+      
+      // Transform backend response format to frontend format
+      return {
+        success: true,
+        message: result.message,
+        data: {
+          token: result.access_token
+        }
+      }
     } catch (error) {
       return {
         success: false,
