@@ -151,3 +151,37 @@ export const api = {
   },
 }
 
+
+keywordSuggestions: async (query: string): Promise<ApiResponse<{
+    query: string;
+    suggestions: Array<{
+      suggestion: string;
+      search_volume: number;
+      keyword_difficulty: number;
+    }>;
+  }>> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/keywords/suggest?q=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch keyword suggestions')
+      }
+
+      const result = await response.json()
+      return {
+        success: true,
+        data: result
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to fetch keyword suggestions. Please try again.',
+      }
+    }
+  },
+}

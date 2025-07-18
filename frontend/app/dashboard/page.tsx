@@ -2,24 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Zap,
-  LogOut,
-  FileText,
-  Search,
-  TrendingUp,
+import { 
+  Zap, 
+  LogOut, 
+  FileText, 
+  Search, 
+  TrendingUp, 
   Settings,
   Plus,
   BarChart3,
   Clock,
-  Star,
+  Star
 } from 'lucide-react'
-import {
-  getAuthToken,
-  getUserFromToken,
-  removeAuthToken,
-  isAuthenticated,
-} from '../lib/auth'
+import { getAuthToken, getUserFromToken, removeAuthToken, isAuthenticated } from '../lib/auth'
 
 export default function Dashboard() {
   const [user, setUser] = useState<{ email: string } | null>(null)
@@ -27,14 +22,17 @@ export default function Dashboard() {
   const router = useRouter()
 
   useEffect(() => {
-    const token = getAuthToken()
-    if (!token || !isAuthenticated()) {
+    if (!isAuthenticated()) {
       router.push('/login')
-    } else {
+      return
+    }
+
+    const token = getAuthToken()
+    if (token) {
       const userData = getUserFromToken(token)
       setUser(userData)
-      setLoading(false)
     }
+    setLoading(false)
   }, [router])
 
   const handleLogout = () => {
@@ -62,7 +60,7 @@ export default function Dashboard() {
               </div>
               <h1 className="ml-3 text-xl font-bold text-white">RankCraft AI</h1>
             </div>
-
+            
             <div className="flex items-center space-x-4">
               <span className="text-slate-300 text-sm">
                 Welcome, {user?.email}
@@ -93,7 +91,10 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group">
+          <div 
+            onClick={() => router.push('/new-article')}
+            className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group"
+          >
             <div className="flex items-center mb-4">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-3 rounded-lg">
                 <Plus className="h-6 w-6 text-white" />
@@ -105,7 +106,10 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group">
+          <div 
+            onClick={() => router.push('/keyword-research')}
+            className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group"
+          >
             <div className="flex items-center mb-4">
               <div className="bg-gradient-to-r from-blue-500 to-cyan-600 p-3 rounded-lg">
                 <Search className="h-6 w-6 text-white" />
@@ -117,7 +121,10 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group">
+          <div 
+            onClick={() => router.push('/analytics')}
+            className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group"
+          >
             <div className="flex items-center mb-4">
               <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-3 rounded-lg">
                 <TrendingUp className="h-6 w-6 text-white" />
@@ -129,7 +136,10 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group">
+          <div 
+            onClick={() => router.push('/settings')}
+            className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group"
+          >
             <div className="flex items-center mb-4">
               <div className="bg-gradient-to-r from-orange-500 to-red-600 p-3 rounded-lg">
                 <Settings className="h-6 w-6 text-white" />
