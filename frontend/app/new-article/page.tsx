@@ -30,6 +30,8 @@ export default function NewArticle() {
   const [articleData, setArticleData] = useState<ArticleData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const router = useRouter();
 
@@ -100,6 +102,34 @@ export default function NewArticle() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    }
+  };
+
+  const saveArticle = async () => {
+    if (!articleData) return;
+    
+    setSaving(true);
+    setSaveSuccess(false);
+    setError('');
+    
+    try {
+      const result = await api.saveArticle({
+        keyword: articleData.keyword,
+        length: articleData.length,
+        tone: articleData.tone,
+        article: articleData.article
+      });
+      
+      if (result.success) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        setError(result.error || 'Failed to save article');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred while saving.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -301,6 +331,18 @@ export default function NewArticle() {
                       >
                         <Download className="h-4 w-4" />
                       </button>
+                      <button
+                        onClick={saveArticle}
+                        disabled={saving}
+                        className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                        title="Save to library"
+                      >
+                        {saving ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                        ) : (
+                          'Save Article'
+                        )}
+                      </button>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4 text-sm text-slate-300">
@@ -308,6 +350,15 @@ export default function NewArticle() {
                     <span>Length: <span className="text-white font-medium capitalize">{articleData.length}</span></span>
                   </div>
                 </div>
+                
+                {saveSuccess && (
+                  <div className="px-6 py-3 bg-green-500/10 border-t border-green-500/20">
+                    <div className="text-green-300 text-sm flex items-center">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Article saved successfully to your library!
+                    </div>
+                  </div>
+                )}
                 
                 <div className="p-6 max-h-96 overflow-y-auto">
                   <div className="prose prose-invert max-w-none">
@@ -350,3 +401,5 @@ export default function NewArticle() {
     </div>
   );
 }
+
+

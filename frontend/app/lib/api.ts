@@ -222,4 +222,86 @@ export const api = {
       };
     }
   },
+
+  saveArticle: async (data: {
+    keyword: string;
+    length: string;
+    tone: string;
+    article: string;
+  }): Promise<ApiResponse<{
+    id: string;
+    keyword: string;
+    length: string;
+    tone: string;
+    article: string;
+    user_id: string;
+    created_at: string;
+  }>> => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('rankcraft_token') : null;
+      
+      const response = await fetch(`${API_BASE_URL}/articles/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save article');
+      }
+
+      const result = await response.json();
+      return {
+        success: true,
+        data: result
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save article. Please try again.',
+      };
+    }
+  },
+
+  getUserArticles: async (): Promise<ApiResponse<Array<{
+    id: string;
+    keyword: string;
+    length: string;
+    tone: string;
+    article: string;
+    user_id: string;
+    created_at: string;
+  }>>> => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('rankcraft_token') : null;
+      
+      const response = await fetch(`${API_BASE_URL}/articles/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch articles');
+      }
+
+      const result = await response.json();
+      return {
+        success: true,
+        data: result
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch articles. Please try again.',
+      };
+    }
+  },
 };

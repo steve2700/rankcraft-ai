@@ -162,7 +162,10 @@ export default function Dashboard() {
                   <FileText className="h-5 w-5 mr-2" />
                   Recent Articles
                 </h3>
-                <button className="text-blue-300 hover:text-blue-200 text-sm font-medium">
+                <button 
+                  onClick={() => router.push('/articles')}
+                  className="text-blue-300 hover:text-blue-200 text-sm font-medium"
+                >
                   View All
                 </button>
               </div>
