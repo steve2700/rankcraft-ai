@@ -91,7 +91,10 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group">
+          <div 
+            onClick={() => router.push('/new-article')}
+            className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group"
+          >
             <div className="flex items-center mb-4">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-3 rounded-lg">
                 <Plus className="h-6 w-6 text-white" />
@@ -103,7 +106,10 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group">
+          <div 
+            onClick={() => router.push('/keyword-research')}
+            className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group"
+          >
             <div className="flex items-center mb-4">
               <div className="bg-gradient-to-r from-blue-500 to-cyan-600 p-3 rounded-lg">
                 <Search className="h-6 w-6 text-white" />
@@ -115,7 +121,10 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group">
+          <div 
+            onClick={() => router.push('/analytics')}
+            className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group"
+          >
             <div className="flex items-center mb-4">
               <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-3 rounded-lg">
                 <TrendingUp className="h-6 w-6 text-white" />
@@ -127,7 +136,10 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group">
+          <div 
+            onClick={() => router.push('/settings')}
+            className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group"
+          >
             <div className="flex items-center mb-4">
               <div className="bg-gradient-to-r from-orange-500 to-red-600 p-3 rounded-lg">
                 <Settings className="h-6 w-6 text-white" />
@@ -150,7 +162,10 @@ export default function Dashboard() {
                   <FileText className="h-5 w-5 mr-2" />
                   Recent Articles
                 </h3>
-                <button className="text-blue-300 hover:text-blue-200 text-sm font-medium">
+                <button 
+                  onClick={() => router.push('/articles')}
+                  className="text-blue-300 hover:text-blue-200 text-sm font-medium"
+                >
                   View All
                 </button>
               </div>

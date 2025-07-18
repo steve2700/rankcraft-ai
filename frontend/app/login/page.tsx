@@ -13,44 +13,60 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [mounted, setMounted] = useState(false) // <-- track if client mounted
   const router = useRouter()
 
   useEffect(() => {
-    if (isAuthenticated()) {
+    setMounted(true) // mark mounted on client side
+  }, [])
+
+  useEffect(() => {
+    if (mounted && isAuthenticated()) {
       router.push('/dashboard')
     }
-  }, [router])
+  }, [mounted, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    
+
     if (!email || !password) {
       setError('Please fill in all fields')
       return
     }
-    
+
     setLoading(true)
-    
+
     try {
       const result = await api.login({ email, password })
-      
-      if (result.success && result.data?.token) {
-        setAuthToken(result.data.token)
+
+      if (
+        result.success &&
+        result.data?.access_token &&
+        result.data?.refresh_token
+      ) {
+        // ✅ Store both access and refresh tokens
+        setAuthToken(result.data.access_token, result.data.refresh_token)
         router.push('/dashboard')
       } else {
         setError(result.error || 'Invalid email or password')
       }
     } catch (err) {
+      console.error('Login Error:', err)
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
+  // Prevent hydration error by rendering nothing on server
+  if (!mounted) {
+    return null
+  }
+
   return (
-    <AuthLayout 
-      title="Welcome Back" 
+    <AuthLayout
+      title="Welcome Back"
       subtitle="Sign in to your RankCraft AI account"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -89,9 +105,7 @@ export default function Login() {
         </div>
 
         {error && (
-          <div className="error-message">
-            {error}
-          </div>
+          <div className="error-message text-red-400 text-sm">{error}</div>
         )}
 
         <button
@@ -116,7 +130,7 @@ export default function Login() {
             </Link>
           </p>
           <p className="text-slate-300 text-sm">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/register" className="auth-link">
               Create one here
             </Link>
@@ -126,3 +140,4 @@ export default function Login() {
     </AuthLayout>
   )
 }
+
