@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Search, 
   TrendingUp, 
@@ -13,98 +13,98 @@ import {
   ExternalLink,
   Filter,
   SortDesc
-} from 'lucide-react'
-import { getAuthToken, isAuthenticated } from '../lib/auth'
-import { api } from '../lib/api'
+} from 'lucide-react';
+import { getAuthToken, isAuthenticated } from '../lib/auth';
+import { api } from '../lib/api';
 
 interface KeywordSuggestion {
-  suggestion: string
-  search_volume: number
-  keyword_difficulty: number
+  suggestion: string;
+  search_volume: number;
+  keyword_difficulty: number;
 }
 
 interface KeywordData {
-  query: string
-  suggestions: KeywordSuggestion[]
+  query: string;
+  suggestions: KeywordSuggestion[];
 }
 
 export default function KeywordResearch() {
-  const [query, setQuery] = useState('')
-  const [keywordData, setKeywordData] = useState<KeywordData | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [sortBy, setSortBy] = useState<'volume' | 'difficulty' | 'alphabetical'>('volume')
-  const [filterDifficulty, setFilterDifficulty] = useState<'all' | 'easy' | 'medium' | 'hard'>('all')
-  const router = useRouter()
+  const [query, setQuery] = useState('');
+  const [keywordData, setKeywordData] = useState<KeywordData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [sortBy, setSortBy] = useState<'volume' | 'difficulty' | 'alphabetical'>('volume');
+  const [filterDifficulty, setFilterDifficulty] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
+  const router = useRouter();
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      router.push('/login')
+      router.push('/login');
     }
-  }, [router])
+  }, [router]);
 
   const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     
     if (!query.trim() || query.trim().length < 2) {
-      setError('Please enter at least 2 characters')
-      return
+      setError('Please enter at least 2 characters');
+      return;
     }
 
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError('');
     
     try {
-      const result = await api.keywordSuggestions(query.trim())
+      const result = await api.keywordSuggestions(query.trim());
       
       if (result.success && result.data) {
-        setKeywordData(result.data)
+        setKeywordData(result.data);
       } else {
-        setError(result.error || 'Failed to fetch keyword suggestions')
+        setError(result.error || 'Failed to fetch keyword suggestions');
       }
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.')
+      setError('An unexpected error occurred. Please try again.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const getDifficultyColor = (difficulty: number) => {
-    if (difficulty <= 30) return 'text-green-400 bg-green-400/10 border-green-400/20'
-    if (difficulty <= 60) return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20'
-    return 'text-red-400 bg-red-400/10 border-red-400/20'
-  }
+    if (difficulty <= 30) return 'text-green-400 bg-green-400/10 border-green-400/20';
+    if (difficulty <= 60) return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
+    return 'text-red-400 bg-red-400/10 border-red-400/20';
+  };
 
   const getDifficultyLabel = (difficulty: number) => {
-    if (difficulty <= 30) return 'Easy'
-    if (difficulty <= 60) return 'Medium'
-    return 'Hard'
-  }
+    if (difficulty <= 30) return 'Easy';
+    if (difficulty <= 60) return 'Medium';
+    return 'Hard';
+  };
 
   const formatSearchVolume = (volume: number) => {
-    if (volume >= 1000000) return `${(volume / 1000000).toFixed(1)}M`
-    if (volume >= 1000) return `${(volume / 1000).toFixed(1)}K`
-    return volume.toString()
-  }
+    if (volume >= 1000000) return `${(volume / 1000000).toFixed(1)}M`;
+    if (volume >= 1000) return `${(volume / 1000).toFixed(1)}K`;
+    return volume.toString();
+  };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-  }
+    navigator.clipboard.writeText(text);
+  };
 
   const filteredAndSortedSuggestions = keywordData?.suggestions
     ?.filter(suggestion => {
-      if (filterDifficulty === 'all') return true
-      if (filterDifficulty === 'easy') return suggestion.keyword_difficulty <= 30
-      if (filterDifficulty === 'medium') return suggestion.keyword_difficulty > 30 && suggestion.keyword_difficulty <= 60
-      if (filterDifficulty === 'hard') return suggestion.keyword_difficulty > 60
-      return true
+      if (filterDifficulty === 'all') return true;
+      if (filterDifficulty === 'easy') return suggestion.keyword_difficulty <= 30;
+      if (filterDifficulty === 'medium') return suggestion.keyword_difficulty > 30 && suggestion.keyword_difficulty <= 60;
+      if (filterDifficulty === 'hard') return suggestion.keyword_difficulty > 60;
+      return true;
     })
     ?.sort((a, b) => {
-      if (sortBy === 'volume') return b.search_volume - a.search_volume
-      if (sortBy === 'difficulty') return a.keyword_difficulty - b.keyword_difficulty
-      if (sortBy === 'alphabetical') return a.suggestion.localeCompare(b.suggestion)
-      return 0
-    }) || []
+      if (sortBy === 'volume') return b.search_volume - a.search_volume;
+      if (sortBy === 'difficulty') return a.keyword_difficulty - b.keyword_difficulty;
+      if (sortBy === 'alphabetical') return a.suggestion.localeCompare(b.suggestion);
+      return 0;
+    }) || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
@@ -207,7 +207,7 @@ export default function KeywordResearch() {
                       <option value="all">All Difficulty</option>
                       <option value="easy">Easy (≤30)</option>
                       <option value="medium">Medium (31-60)</option>
-                      <option value="hard">Hard (>60)</option>
+                      <option value="hard">Hard (&gt;60)</option>
                     </select>
                   </div>
                   
@@ -344,5 +344,5 @@ export default function KeywordResearch() {
         )}
       </main>
     </div>
-  )
+  );
 }
