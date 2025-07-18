@@ -35,9 +35,13 @@ export default function Login() {
     try {
       const result = await api.login({ email, password })
 
-      if (result.success && result.data?.token && result.data?.refresh) {
+      if (
+        result.success &&
+        result.data?.access_token &&
+        result.data?.refresh_token
+      ) {
         // ✅ Store both access and refresh tokens
-        setAuthToken(result.data.token, result.data.refresh)
+        setAuthToken(result.data.access_token, result.data.refresh_token)
         router.push('/dashboard')
       } else {
         setError(result.error || 'Invalid email or password')

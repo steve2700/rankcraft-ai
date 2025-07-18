@@ -17,6 +17,11 @@ interface LoginData {
   password: string
 }
 
+interface LoginResponse {
+  access_token: string
+  refresh_token: string
+}
+
 interface VerifyEmailData {
   email: string
   code: string
@@ -50,9 +55,7 @@ export const api = {
     }
   },
 
-  login: async (
-    data: LoginData
-  ): Promise<ApiResponse<{ access_token: string; refresh_token: string }>> => {
+  login: async (data: LoginData): Promise<ApiResponse<LoginResponse>> => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
