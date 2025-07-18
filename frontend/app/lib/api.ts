@@ -150,7 +150,6 @@ export const api = {
     }
   },
 
-  // CORRECTED: Moved inside the api object
   keywordSuggestions: async (query: string): Promise<ApiResponse<{
     query: string;
     suggestions: Array<{
@@ -183,4 +182,44 @@ export const api = {
       };
     }
   },
-}; // Properly closed the api object
+
+  generateArticle: async (data: {
+    keyword: string;
+    length: string;
+    tone: string;
+  }): Promise<ApiResponse<{
+    keyword: string;
+    length: string;
+    tone: string;
+    article: string;
+  }>> => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('rankcraft_token') : null;
+      
+      const response = await fetch(`${API_BASE_URL}/generate/article`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate article');
+      }
+
+      const result = await response.json();
+      return {
+        success: true,
+        data: result
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate article. Please try again.',
+      };
+    }
+  },
+};
