@@ -13,13 +13,18 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [mounted, setMounted] = useState(false) // <-- track if client mounted
   const router = useRouter()
 
   useEffect(() => {
-    if (isAuthenticated()) {
+    setMounted(true) // mark mounted on client side
+  }, [])
+
+  useEffect(() => {
+    if (mounted && isAuthenticated()) {
       router.push('/dashboard')
     }
-  }, [router])
+  }, [mounted, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,6 +57,11 @@ export default function Login() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Prevent hydration error by rendering nothing on server
+  if (!mounted) {
+    return null
   }
 
   return (
