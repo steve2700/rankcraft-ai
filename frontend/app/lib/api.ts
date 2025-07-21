@@ -304,4 +304,139 @@ export const api = {
       };
     }
   },
+
+  updateArticle: async (articleId: string, data: {
+    keyword: string;
+    length: string;
+    tone: string;
+    article: string;
+  }): Promise<ApiResponse<{
+    id: string;
+    keyword: string;
+    length: string;
+    tone: string;
+    article: string;
+    user_id: string;
+    created_at: string;
+  }>> => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('rankcraft_token') : null;
+      
+      const response = await fetch(`${API_BASE_URL}/articles/${articleId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update article');
+      }
+
+      const result = await response.json();
+      return {
+        success: true,
+        data: result
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update article. Please try again.',
+      };
+    }
+  },
+
+  deleteArticle: async (articleId: string): Promise<ApiResponse<boolean>> => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('rankcraft_token') : null;
+      
+      const response = await fetch(`${API_BASE_URL}/articles/${articleId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete article');
+      }
+
+      return {
+        success: true,
+        data: true
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to delete article. Please try again.',
+      };
+    }
+  },
+
+  seoAnalyze: async (data: {
+    title: string;
+    meta_description: string;
+    content: string;
+    keyword: string;
+  }): Promise<ApiResponse<{
+    overall_score: number;
+    title_analysis: {
+      score: number;
+      issues: string[];
+      suggestions: string[];
+    };
+    meta_description_analysis: {
+      score: number;
+      issues: string[];
+      suggestions: string[];
+    };
+    content_analysis: {
+      score: number;
+      keyword_density: number;
+      word_count: number;
+      readability_score: number;
+      issues: string[];
+      suggestions: string[];
+    };
+    keyword_analysis: {
+      score: number;
+      keyword_in_title: boolean;
+      keyword_in_meta: boolean;
+      keyword_in_content: boolean;
+      keyword_frequency: number;
+      issues: string[];
+      suggestions: string[];
+    };
+  }>> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/seo/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to analyze SEO');
+      }
+
+      const result = await response.json();
+      return {
+        success: true,
+        data: result
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to analyze SEO. Please try again.',
+      };
+    }
+  },
 };

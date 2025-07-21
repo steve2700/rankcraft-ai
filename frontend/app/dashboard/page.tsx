@@ -122,17 +122,17 @@ export default function Dashboard() {
           </div>
 
           <div 
-            onClick={() => router.push('/analytics')}
+            onClick={() => router.push('/seo-analyzer')}
             className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 cursor-pointer group"
           >
             <div className="flex items-center mb-4">
               <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-3 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-white" />
+                <Search className="h-6 w-6 text-white" />
               </div>
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Analytics</h3>
+            <h3 className="text-lg font-semibold text-white mb-2">SEO Analyzer</h3>
             <p className="text-slate-300 text-sm">
-              Track your content performance and rankings
+              Analyze and optimize your content for SEO
             </p>
           </div>
 
