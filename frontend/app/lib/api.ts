@@ -414,10 +414,15 @@ export const api = {
     };
   }>> => {
     try {
+      // Get token from localStorage (client-side only)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('rankcraft_token') : null;
+      
       const response = await fetch(`${API_BASE_URL}/seo/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // Add Authorization header with Bearer token
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
