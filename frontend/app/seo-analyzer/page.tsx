@@ -1,3 +1,4 @@
+// app/seo-analyzer/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,48 +12,51 @@ import {
   XCircle,
   Target,
   FileText,
-  Eye,
   Lightbulb,
   BarChart3,
-  TrendingUp,
   Hash,
   Type,
   BookOpen,
-  Zap
 } from 'lucide-react';
-import { getAuthToken, isAuthenticated } from '../lib/auth';
+import { isAuthenticated } from '../lib/auth';
 import { api } from '../lib/api';
 
 interface SEOAnalysis {
-  overall_score: number;
-  title_analysis: {
-    score: number;
-    issues: string[];
-    suggestions: string[];
+  overall_score?: number;
+  title_analysis?: {
+    score?: number;
+    issues?: string[];
+    suggestions?: string[];
+    length?: number;
   };
-  meta_description_analysis: {
-    score: number;
-    issues: string[];
-    suggestions: string[];
+  meta_analysis?: { // Changed to match backend
+    score?: number;
+    issues?: string[];
+    suggestions?: string[];
+    length?: number;
   };
-  content_analysis: {
-    score: number;
-    keyword_density: number;
-    word_count: number;
-    readability_score: number;
-    issues: string[];
-    suggestions: string[];
+  content_analysis?: {
+    seo_score?: number; // Changed to match backend
+    readability?: number; // Changed to match backend
+    keyword_density?: number;
+    recommendations?: string[]; // Changed to match backend
+    word_count?: number;
   };
-  keyword_analysis: {
-    score: number;
-    keyword_in_title: boolean;
-    keyword_in_meta: boolean;
-    keyword_in_content: boolean;
-    keyword_frequency: number;
-    issues: string[];
-    suggestions: string[];
+  keyword_analysis?: {
+    score?: number;
+    keyword_in_title?: boolean;
+    keyword_in_meta?: boolean;
+    keyword_in_content?: boolean;
+    keyword_frequency?: number;
+    issues?: string[];
+    suggestions?: string[];
   };
 }
+
+// Helper to safely get values
+const getSafeValue = <T,>(value: T | undefined, fallback: T): T => {
+  return value !== undefined ? value : fallback;
+};
 
 export default function SEOAnalyzer() {
   const [title, setTitle] = useState('');
@@ -80,6 +84,7 @@ export default function SEOAnalyzer() {
 
     setLoading(true);
     setError('');
+    setAnalysis(null);
     
     try {
       const result = await api.seoAnalyze({
@@ -101,22 +106,35 @@ export default function SEOAnalyzer() {
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-400 bg-green-400/10 border-green-400/20';
-    if (score >= 60) return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
+  const getScoreColor = (score: number | undefined) => {
+    const safeScore = getSafeValue(score, 0);
+    if (safeScore >= 80) return 'text-green-400 bg-green-400/10 border-green-400/20';
+    if (safeScore >= 60) return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
     return 'text-red-400 bg-red-400/10 border-red-400/20';
   };
 
-  const getScoreIcon = (score: number) => {
-    if (score >= 80) return <CheckCircle className="h-5 w-5" />;
-    if (score >= 60) return <AlertCircle className="h-5 w-5" />;
+  const getScoreIcon = (score: number | undefined) => {
+    const safeScore = getSafeValue(score, 0);
+    if (safeScore >= 80) return <CheckCircle className="h-5 w-5" />;
+    if (safeScore >= 60) return <AlertCircle className="h-5 w-5" />;
     return <XCircle className="h-5 w-5" />;
   };
 
-  const getOverallScoreColor = (score: number) => {
-    if (score >= 80) return 'from-green-500 to-emerald-600';
-    if (score >= 60) return 'from-yellow-500 to-orange-600';
+  const getOverallScoreColor = (score: number | undefined) => {
+    const safeScore = getSafeValue(score, 0);
+    if (safeScore >= 80) return 'from-green-500 to-emerald-600';
+    if (safeScore >= 60) return 'from-yellow-500 to-orange-600';
     return 'from-red-500 to-red-600';
+  };
+
+  // Calculate overall score from various analysis scores
+  const calculateOverallScore = (data: SEOAnalysis): number => {
+    const titleScore = data.title_analysis?.score || 0;
+    const metaScore = data.meta_analysis?.score || 0;
+    const contentScore = data.content_analysis?.seo_score || 0;
+    const keywordScore = data.keyword_analysis?.score || 0;
+    
+    return Math.round((titleScore + metaScore + contentScore + keywordScore) / 4);
   };
 
   return (
@@ -275,12 +293,16 @@ export default function SEOAnalyzer() {
                 <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
                   <div className="text-center">
                     <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-r ${getOverallScoreColor(analysis.overall_score)} mb-4`}>
-                      <span className="text-3xl font-bold text-white">{analysis.overall_score}</span>
+                      <span className="text-3xl font-bold text-white">
+                        {getSafeValue(analysis.overall_score, calculateOverallScore(analysis))}
+                      </span>
                     </div>
                     <h3 className="text-2xl font-bold text-white mb-2">Overall SEO Score</h3>
                     <p className="text-slate-300">
-                      {analysis.overall_score >= 80 ? 'Excellent SEO optimization!' : 
-                       analysis.overall_score >= 60 ? 'Good SEO with room for improvement' : 
+                      {getSafeValue(analysis.overall_score, calculateOverallScore(analysis)) >= 80 
+                        ? 'Excellent SEO optimization!' : 
+                       getSafeValue(analysis.overall_score, calculateOverallScore(analysis)) >= 60 
+                        ? 'Good SEO with room for improvement' : 
                        'Needs significant SEO improvements'}
                     </p>
                   </div>
@@ -289,197 +311,198 @@ export default function SEOAnalyzer() {
                 {/* Detailed Analysis */}
                 <div className="space-y-4">
                   {/* Title Analysis */}
-                  <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <Type className="h-5 w-5 text-blue-400 mr-2" />
-                        <h4 className="text-lg font-semibold text-white">Title Analysis</h4>
+                  {analysis.title_analysis && (
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <Type className="h-5 w-5 text-blue-400 mr-2" />
+                          <h4 className="text-lg font-semibold text-white">Title Analysis</h4>
+                        </div>
+                        <div className={`flex items-center px-3 py-1 rounded-full border ${getScoreColor(analysis.title_analysis.score)}`}>
+                          {getScoreIcon(analysis.title_analysis.score)}
+                          <span className="ml-2 font-semibold">
+                            {getSafeValue(analysis.title_analysis.score, 0)}
+                          </span>
+                        </div>
                       </div>
-                      <div className={`flex items-center px-3 py-1 rounded-full border ${getScoreColor(analysis.title_analysis.score)}`}>
-                        {getScoreIcon(analysis.title_analysis.score)}
-                        <span className="ml-2 font-semibold">{analysis.title_analysis.score}</span>
-                      </div>
+                      
+                      {analysis.title_analysis.issues?.length > 0 && (
+                        <div className="mb-4">
+                          <h5 className="text-sm font-medium text-red-300 mb-2 flex items-center">
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Issues Found
+                          </h5>
+                          <ul className="space-y-1">
+                            {analysis.title_analysis.issues.map((issue, index) => (
+                              <li key={index} className="text-sm text-slate-300 flex items-start">
+                                <span className="w-1 h-1 bg-red-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                                {issue}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {analysis.title_analysis.suggestions?.length > 0 && (
+                        <div>
+                          <h5 className="text-sm font-medium text-green-300 mb-2 flex items-center">
+                            <Lightbulb className="h-4 w-4 mr-1" />
+                            Suggestions
+                          </h5>
+                          <ul className="space-y-1">
+                            {analysis.title_analysis.suggestions.map((suggestion, index) => (
+                              <li key={index} className="text-sm text-slate-300 flex items-start">
+                                <span className="w-1 h-1 bg-green-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                                {suggestion}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                    
-                    {analysis.title_analysis.issues.length > 0 && (
-                      <div className="mb-4">
-                        <h5 className="text-sm font-medium text-red-300 mb-2 flex items-center">
-                          <XCircle className="h-4 w-4 mr-1" />
-                          Issues Found
-                        </h5>
-                        <ul className="space-y-1">
-                          {analysis.title_analysis.issues.map((issue, index) => (
-                            <li key={index} className="text-sm text-slate-300 flex items-start">
-                              <span className="w-1 h-1 bg-red-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                              {issue}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {analysis.title_analysis.suggestions.length > 0 && (
-                      <div>
-                        <h5 className="text-sm font-medium text-green-300 mb-2 flex items-center">
-                          <Lightbulb className="h-4 w-4 mr-1" />
-                          Suggestions
-                        </h5>
-                        <ul className="space-y-1">
-                          {analysis.title_analysis.suggestions.map((suggestion, index) => (
-                            <li key={index} className="text-sm text-slate-300 flex items-start">
-                              <span className="w-1 h-1 bg-green-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                              {suggestion}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
+                  )}
 
                   {/* Meta Description Analysis */}
-                  <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <FileText className="h-5 w-5 text-green-400 mr-2" />
-                        <h4 className="text-lg font-semibold text-white">Meta Description Analysis</h4>
+                  {analysis.meta_analysis && (
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <FileText className="h-5 w-5 text-green-400 mr-2" />
+                          <h4 className="text-lg font-semibold text-white">Meta Description Analysis</h4>
+                        </div>
+                        <div className={`flex items-center px-3 py-1 rounded-full border ${getScoreColor(analysis.meta_analysis.score)}`}>
+                          {getScoreIcon(analysis.meta_analysis.score)}
+                          <span className="ml-2 font-semibold">
+                            {getSafeValue(analysis.meta_analysis.score, 0)}
+                          </span>
+                        </div>
                       </div>
-                      <div className={`flex items-center px-3 py-1 rounded-full border ${getScoreColor(analysis.meta_description_analysis.score)}`}>
-                        {getScoreIcon(analysis.meta_description_analysis.score)}
-                        <span className="ml-2 font-semibold">{analysis.meta_description_analysis.score}</span>
-                      </div>
+                      
+                      {analysis.meta_analysis.issues?.length > 0 && (
+                        <div className="mb-4">
+                          <h5 className="text-sm font-medium text-red-300 mb-2 flex items-center">
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Issues Found
+                          </h5>
+                          <ul className="space-y-1">
+                            {analysis.meta_analysis.issues.map((issue, index) => (
+                              <li key={index} className="text-sm text-slate-300 flex items-start">
+                                <span className="w-1 h-1 bg-red-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                                {issue}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {analysis.meta_analysis.suggestions?.length > 0 && (
+                        <div>
+                          <h5 className="text-sm font-medium text-green-300 mb-2 flex items-center">
+                            <Lightbulb className="h-4 w-4 mr-1" />
+                            Suggestions
+                          </h5>
+                          <ul className="space-y-1">
+                            {analysis.meta_analysis.suggestions.map((suggestion, index) => (
+                              <li key={index} className="text-sm text-slate-300 flex items-start">
+                                <span className="w-1 h-1 bg-green-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                                {suggestion}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                    
-                    {analysis.meta_description_analysis.issues.length > 0 && (
-                      <div className="mb-4">
-                        <h5 className="text-sm font-medium text-red-300 mb-2 flex items-center">
-                          <XCircle className="h-4 w-4 mr-1" />
-                          Issues Found
-                        </h5>
-                        <ul className="space-y-1">
-                          {analysis.meta_description_analysis.issues.map((issue, index) => (
-                            <li key={index} className="text-sm text-slate-300 flex items-start">
-                              <span className="w-1 h-1 bg-red-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                              {issue}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {analysis.meta_description_analysis.suggestions.length > 0 && (
-                      <div>
-                        <h5 className="text-sm font-medium text-green-300 mb-2 flex items-center">
-                          <Lightbulb className="h-4 w-4 mr-1" />
-                          Suggestions
-                        </h5>
-                        <ul className="space-y-1">
-                          {analysis.meta_description_analysis.suggestions.map((suggestion, index) => (
-                            <li key={index} className="text-sm text-slate-300 flex items-start">
-                              <span className="w-1 h-1 bg-green-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                              {suggestion}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
+                  )}
 
                   {/* Content Analysis */}
-                  <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <BookOpen className="h-5 w-5 text-purple-400 mr-2" />
-                        <h4 className="text-lg font-semibold text-white">Content Analysis</h4>
+                  {analysis.content_analysis && (
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <BookOpen className="h-5 w-5 text-purple-400 mr-2" />
+                          <h4 className="text-lg font-semibold text-white">Content Analysis</h4>
+                        </div>
+                        <div className={`flex items-center px-3 py-1 rounded-full border ${getScoreColor(analysis.content_analysis.seo_score)}`}>
+                          {getScoreIcon(analysis.content_analysis.seo_score)}
+                          <span className="ml-2 font-semibold">
+                            {getSafeValue(analysis.content_analysis.seo_score, 0)}
+                          </span>
+                        </div>
                       </div>
-                      <div className={`flex items-center px-3 py-1 rounded-full border ${getScoreColor(analysis.content_analysis.score)}`}>
-                        {getScoreIcon(analysis.content_analysis.score)}
-                        <span className="ml-2 font-semibold">{analysis.content_analysis.score}</span>
+                      
+                      {/* Content Stats */}
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                          <div className="text-lg font-bold text-white">
+                            {getSafeValue(analysis.content_analysis.word_count, content.split(/\s+/).filter(word => word.length > 0).length)}
+                          </div>
+                          <div className="text-xs text-slate-400">Word Count</div>
+                        </div>
+                        <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                          <div className="text-lg font-bold text-white">
+                            {getSafeValue(analysis.content_analysis.keyword_density, 0).toFixed(1)}%
+                          </div>
+                          <div className="text-xs text-slate-400">Keyword Density</div>
+                        </div>
                       </div>
+                      
+                      {analysis.content_analysis.recommendations?.length > 0 && (
+                        <div className="mb-4">
+                          <h5 className="text-sm font-medium text-red-300 mb-2 flex items-center">
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Recommendations
+                          </h5>
+                          <ul className="space-y-1">
+                            {analysis.content_analysis.recommendations.map((issue, index) => (
+                              <li key={index} className="text-sm text-slate-300 flex items-start">
+                                <span className="w-1 h-1 bg-red-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                                {issue}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                    
-                    {/* Content Stats */}
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                        <div className="text-lg font-bold text-white">{analysis.content_analysis.word_count}</div>
-                        <div className="text-xs text-slate-400">Word Count</div>
-                      </div>
-                      <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                        <div className="text-lg font-bold text-white">{analysis.content_analysis.keyword_density.toFixed(1)}%</div>
-                        <div className="text-xs text-slate-400">Keyword Density</div>
-                      </div>
-                    </div>
-                    
-                    {analysis.content_analysis.issues.length > 0 && (
-                      <div className="mb-4">
-                        <h5 className="text-sm font-medium text-red-300 mb-2 flex items-center">
-                          <XCircle className="h-4 w-4 mr-1" />
-                          Issues Found
-                        </h5>
-                        <ul className="space-y-1">
-                          {analysis.content_analysis.issues.map((issue, index) => (
-                            <li key={index} className="text-sm text-slate-300 flex items-start">
-                              <span className="w-1 h-1 bg-red-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                              {issue}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {analysis.content_analysis.suggestions.length > 0 && (
-                      <div>
-                        <h5 className="text-sm font-medium text-green-300 mb-2 flex items-center">
-                          <Lightbulb className="h-4 w-4 mr-1" />
-                          Suggestions
-                        </h5>
-                        <ul className="space-y-1">
-                          {analysis.content_analysis.suggestions.map((suggestion, index) => (
-                            <li key={index} className="text-sm text-slate-300 flex items-start">
-                              <span className="w-1 h-1 bg-green-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                              {suggestion}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
+                  )}
 
-                  {/* Keyword Analysis */}
+                  {/* Keyword Analysis - Frontend calculated */}
                   <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center">
                         <Hash className="h-5 w-5 text-yellow-400 mr-2" />
                         <h4 className="text-lg font-semibold text-white">Keyword Analysis</h4>
                       </div>
-                      <div className={`flex items-center px-3 py-1 rounded-full border ${getScoreColor(analysis.keyword_analysis.score)}`}>
-                        {getScoreIcon(analysis.keyword_analysis.score)}
-                        <span className="ml-2 font-semibold">{analysis.keyword_analysis.score}</span>
+                      <div className={`flex items-center px-3 py-1 rounded-full border ${getScoreColor(analysis.keyword_analysis?.score)}`}>
+                        {getScoreIcon(analysis.keyword_analysis?.score)}
+                        <span className="ml-2 font-semibold">
+                          {getSafeValue(analysis.keyword_analysis?.score, 0)}
+                        </span>
                       </div>
                     </div>
                     
-                    {/* Keyword Presence */}
+                    {/* Keyword Presence - Frontend calculated */}
                     <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div className={`p-3 rounded-lg border ${analysis.keyword_analysis.keyword_in_title ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                      <div className={`p-3 rounded-lg border ${title.toLowerCase().includes(keyword.toLowerCase()) ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
                         <div className="text-center">
-                          {analysis.keyword_analysis.keyword_in_title ? 
+                          {title.toLowerCase().includes(keyword.toLowerCase()) ? 
                             <CheckCircle className="h-6 w-6 text-green-400 mx-auto mb-1" /> :
                             <XCircle className="h-6 w-6 text-red-400 mx-auto mb-1" />
                           }
                           <div className="text-xs text-slate-300">In Title</div>
                         </div>
                       </div>
-                      <div className={`p-3 rounded-lg border ${analysis.keyword_analysis.keyword_in_meta ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                      <div className={`p-3 rounded-lg border ${metaDescription.toLowerCase().includes(keyword.toLowerCase()) ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
                         <div className="text-center">
-                          {analysis.keyword_analysis.keyword_in_meta ? 
+                          {metaDescription.toLowerCase().includes(keyword.toLowerCase()) ? 
                             <CheckCircle className="h-6 w-6 text-green-400 mx-auto mb-1" /> :
                             <XCircle className="h-6 w-6 text-red-400 mx-auto mb-1" />
                           }
                           <div className="text-xs text-slate-300">In Meta</div>
                         </div>
                       </div>
-                      <div className={`p-3 rounded-lg border ${analysis.keyword_analysis.keyword_in_content ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                      <div className={`p-3 rounded-lg border ${content.toLowerCase().includes(keyword.toLowerCase()) ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
                         <div className="text-center">
-                          {analysis.keyword_analysis.keyword_in_content ? 
+                          {content.toLowerCase().includes(keyword.toLowerCase()) ? 
                             <CheckCircle className="h-6 w-6 text-green-400 mx-auto mb-1" /> :
                             <XCircle className="h-6 w-6 text-red-400 mx-auto mb-1" />
                           }
@@ -488,7 +511,7 @@ export default function SEOAnalyzer() {
                       </div>
                     </div>
                     
-                    {analysis.keyword_analysis.issues.length > 0 && (
+                    {analysis.keyword_analysis?.issues?.length > 0 && (
                       <div className="mb-4">
                         <h5 className="text-sm font-medium text-red-300 mb-2 flex items-center">
                           <XCircle className="h-4 w-4 mr-1" />
@@ -505,7 +528,7 @@ export default function SEOAnalyzer() {
                       </div>
                     )}
                     
-                    {analysis.keyword_analysis.suggestions.length > 0 && (
+                    {analysis.keyword_analysis?.suggestions?.length > 0 && (
                       <div>
                         <h5 className="text-sm font-medium text-green-300 mb-2 flex items-center">
                           <Lightbulb className="h-4 w-4 mr-1" />

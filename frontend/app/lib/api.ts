@@ -1,3 +1,5 @@
+// lib/api.ts
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://rankcraft-ai.onrender.com';
 
 interface ApiResponse<T> {
@@ -206,8 +208,13 @@ export const api = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate article');
+        const errorData = await response.text();
+        let errorMessage = 'Failed to generate article';
+        try {
+          const parsedError = JSON.parse(errorData);
+          errorMessage = parsedError.error || errorMessage;
+        } catch {}
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -250,8 +257,13 @@ export const api = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save article');
+        const errorData = await response.text();
+        let errorMessage = 'Failed to save article';
+        try {
+          const parsedError = JSON.parse(errorData);
+          errorMessage = parsedError.error || errorMessage;
+        } catch {}
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -288,8 +300,13 @@ export const api = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch articles');
+        const errorData = await response.text();
+        let errorMessage = 'Failed to fetch articles';
+        try {
+          const parsedError = JSON.parse(errorData);
+          errorMessage = parsedError.error || errorMessage;
+        } catch {}
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -332,8 +349,13 @@ export const api = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update article');
+        const errorData = await response.text();
+        let errorMessage = 'Failed to update article';
+        try {
+          const parsedError = JSON.parse(errorData);
+          errorMessage = parsedError.error || errorMessage;
+        } catch {}
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -362,8 +384,13 @@ export const api = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete article');
+        const errorData = await response.text();
+        let errorMessage = 'Failed to delete article';
+        try {
+          const parsedError = JSON.parse(errorData);
+          errorMessage = parsedError.error || errorMessage;
+        } catch {}
+        throw new Error(errorMessage);
       }
 
       return {
@@ -383,53 +410,32 @@ export const api = {
     meta_description: string;
     content: string;
     keyword: string;
-  }): Promise<ApiResponse<{
-    overall_score: number;
-    title_analysis: {
-      score: number;
-      issues: string[];
-      suggestions: string[];
-    };
-    meta_description_analysis: {
-      score: number;
-      issues: string[];
-      suggestions: string[];
-    };
-    content_analysis: {
-      score: number;
-      keyword_density: number;
-      word_count: number;
-      readability_score: number;
-      issues: string[];
-      suggestions: string[];
-    };
-    keyword_analysis: {
-      score: number;
-      keyword_in_title: boolean;
-      keyword_in_meta: boolean;
-      keyword_in_content: boolean;
-      keyword_frequency: number;
-      issues: string[];
-      suggestions: string[];
-    };
-  }>> => {
+  }): Promise<ApiResponse<any>> => { // Use 'any' for flexibility
     try {
-      // Get token from localStorage (client-side only)
-      const token = typeof window !== 'undefined' ? localStorage.getItem('rankcraft_token') : null;
+      const token = typeof window !== 'undefined' 
+        ? localStorage.getItem('rankcraft_token') 
+        : null;
       
       const response = await fetch(`${API_BASE_URL}/seo/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Add Authorization header with Bearer token
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to analyze SEO');
+        const errorText = await response.text();
+        let errorData = { error: 'Failed to analyze SEO' };
+        
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || 'Failed to analyze SEO' };
+        }
+        
+        throw new Error(errorData.error);
       }
 
       const result = await response.json();
@@ -440,8 +446,11 @@ export const api = {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to analyze SEO. Please try again.',
+        error: error instanceof Error 
+          ? error.message 
+          : 'Failed to analyze SEO. Please try again.',
       };
     }
   },
 };
+
